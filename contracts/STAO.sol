@@ -38,11 +38,6 @@ contract STAO is ERC20Upgradeable, OwnableUpgradeable, ISTAO {
         emit StakingPrecompileSet(_stakingPrecompile);
     }
 
-    /// @inheritdoc ISTAO
-    function withdraw(uint256 amount) external onlyOwner {
-        payable(owner()).transfer(amount);
-    }
-
     // TODO: WIP
     /// @inheritdoc ISTAO
     function rebalance(bytes32[] calldata hotkeys, uint256[] calldata amounts) public onlyOwner {
