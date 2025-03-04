@@ -61,6 +61,11 @@ interface ISTAO {
     /// @dev This function is callable only by the owner
     function setStakingPrecompile(address stakingPrecompile) external;
 
+    /// @notice Withdraws TAO from the contract
+    /// @param amount The amount of TAO to withdraw
+    /// @dev This function is callable only by the owner
+    function withdraw(uint256 amount) external;
+
     /// @notice Rebalances the stakes of the contract
     /// @param hotkeys The hotkeys to rebalance
     /// @param amounts The amounts to rebalance to
