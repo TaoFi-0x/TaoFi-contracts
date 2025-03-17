@@ -35,8 +35,7 @@ contract STaoTaoUSDOracle {
     /// @return _priceLow is the lower of the prices
     /// @return _priceHigh is the higher of the prices
     function getPrices() public view returns (bool _isBadData, uint256 _priceLow, uint256 _priceHigh) {
-        // PythStructs.Price memory priceStruct = IPyth(TAO_USD_PYTH).getPriceNoOlderThan(PRICE_FEED_ID, MAX_ORACLE_DELAY); // TAO/USD price 
-        PythStructs.Price memory priceStruct = IPyth(TAO_USD_PYTH).getPriceUnsafe(PRICE_FEED_ID); // TAO/USD price 
+        PythStructs.Price memory priceStruct = IPyth(TAO_USD_PYTH).getPriceNoOlderThan(PRICE_FEED_ID, MAX_ORACLE_DELAY); // TAO/USD price 
 
         uint256 multiple = 10 ** uint256(int256(-1 * priceStruct.expo));
 
