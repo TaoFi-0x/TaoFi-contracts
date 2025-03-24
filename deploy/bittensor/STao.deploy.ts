@@ -36,7 +36,7 @@ func.skip = async (hre: HardhatRuntimeEnvironment) => {
   }
 
   // mainnet
-  return false;
+  return true;
 };
 
 func.tags = ["STAO"];
