@@ -43,7 +43,7 @@ describe("TaoUSDSTAOZap Contract", function () {
 
     // Deploy MockTaousd
     const MockTaousdFactory = await ethers.getContractFactory("MockTaousd");
-    taousd = await MockTaousdFactory.connect(owner).deploy("Tau USD", "τUSD");
+    taousd = await MockTaousdFactory.connect(owner).deploy("TaoUSD", "τUSD");
     await taousd.deployed();
 
     // Deploy STAO
