@@ -123,7 +123,7 @@ describe("TaousdPair Contract", function () {
     ).to.be.not.eq(0);
     expect(await read("TaousdPair", "cleanLiquidationFee")).to.be.eq(10000);
     expect(await read("TaousdPair", "protocolLiquidationFee")).to.be.eq(0);
-    expect(await read("TaousdPair", "maxLTV")).to.be.eq(75000);
+    expect(await read("TaousdPair", "maxLTV")).to.be.eq(50000);
   });
 
   it("User1 deposits τUSD, User2 deposits TAO as collateral, borrows τUSD, then repays it", async () => {
@@ -213,8 +213,8 @@ describe("TaousdPair Contract", function () {
     const exchangeRate = (await read("TaousdSiloOracle", "getPrices"))
       ._priceHigh;
     console.log(`exchange rate: ${exchangeRate}`);
-    // 75% LTV
-    const borrowAmount = (await convertToCurrencyDecimals(taousd.address, 2370))
+    // 50% LTV
+    const borrowAmount = (await convertToCurrencyDecimals(taousd.address, 1580))
     console.log(`borrowing: ${borrowAmount}`);
     await execute(
       "TaousdPair",
@@ -246,7 +246,7 @@ describe("TaousdPair Contract", function () {
     expect(borrowerSnapShot._userCollateralBalance).to.be.eq(collateralAmount);
     expect(await taousd.balanceOf(borrower)).to.be.eq(borrowAmount);
 
-    // Borrow again but failed because of 75% LTV
+    // Borrow again but failed because of 50% LTV
     await expect(
       execute(
         "TaousdPair",
