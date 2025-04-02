@@ -73,4 +73,20 @@ contract TaoUSDSTAOZap is ReentrancyGuard {
         taoUSDAmount = amounts[amounts.length - 1];
         return taoUSDAmount;
     }
+
+    function swapExactTAOUSDForTAO(uint256 taoUSDAmount, uint256 minTAO) external payable returns (uint256 taoAmount) {
+        taoUSD.safeTransferFrom(msg.sender, address(this), taoUSDAmount);
+
+        address[] memory path = new address[](2);
+        path[0] = address(taoUSD);
+        path[1] = address(sTAO);
+
+        uniswapRouter.swapExactTokensForTokens(taoUSDAmount, 0, path, address(this), block.timestamp);
+
+        uint256 sTAOAmount = sTAO.balanceOf(address(this));
+        ISTAO(address(sTAO)).withdraw(sTAOAmount, msg.sender, minTAO);
+        return sTAOAmount;
+    }
+
+    receive() external payable {}
 }
