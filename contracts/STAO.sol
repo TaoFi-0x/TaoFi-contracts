@@ -12,12 +12,17 @@ import {TAOStaker} from "./TAOStaker.sol";
 contract STAO is ERC20Upgradeable, OwnableUpgradeable, ISTAO, TAOStaker {
     using Math for uint256;
 
-    bytes32 public pubKey;
+    bytes32 public pubKey; // Not used after updated
+    address public stakingPrecompile; // Not used after upgrade
     uint256 public networkFee;
 
     function initialize() public initializer {
         __ERC20_init("Staked TAO", "sTAO");
         __Ownable_init();
+    }
+
+    function initializeV2(bytes32 _pubKey, address _stakingPrecompile) public reinitializer(2) {
+        __TAOStaker_init(_pubKey, _stakingPrecompile);
     }
 
     /// @inheritdoc ISTAO
