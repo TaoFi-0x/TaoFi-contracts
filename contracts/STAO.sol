@@ -19,6 +19,7 @@ contract STAO is ERC20Upgradeable, OwnableUpgradeable, ISTAO, TAOStaker {
     function initialize() public initializer {
         __ERC20_init("Staked TAO", "sTAO");
         __Ownable_init();
+        __TAOStaker_init(bytes32(0), address(0));
     }
 
     function initializeV2(bytes32 _pubKey, address _stakingPrecompile) public reinitializer(2) {

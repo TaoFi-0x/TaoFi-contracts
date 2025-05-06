@@ -31,11 +31,6 @@ contract TAOStaker is OwnableUpgradeable, ITAOStaker {
 
     receive() external payable {}
 
-    function initialize(bytes32 pubKey, address stakingPrecompile) public initializer {
-        __Ownable_init();
-        __TAOStaker_init(pubKey, stakingPrecompile);
-    }
-
     function __TAOStaker_init(bytes32 pubKey, address stakingPrecompile) internal {
         TAOSTakerStorage storage $ = _getTAOStakerStorage();
         $.pubKey = pubKey;
