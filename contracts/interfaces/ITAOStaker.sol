@@ -26,9 +26,9 @@ interface ITAOStaker {
     /// @param hotkey The hotkey that is removed
     event HotkeyRemoved(bytes32 hotkey);
 
-    /// @notice Event emitted when the total amount of TAO staked is updated
-    /// @param totalStaked The total amount of TAO staked
-    event TotalStakedTAOUpdated(uint256 totalStaked);
+    /// @notice Event emitted when the hotkey priority is set
+    /// @param hotkeyIndex The index of the hotkey that is set as the priority hotkey
+    event HotKeyPrioritySet(uint256 hotkeyIndex);
 
     /// @notice Event emitted when a stake is added
     /// @param hotkey The hotkey that the stake is added to
@@ -78,6 +78,10 @@ interface ITAOStaker {
     /// @notice Sets the staking precompile address
     /// @param stakingPrecompile The staking precompile address to set
     function setStakingPrecompile(address stakingPrecompile) external;
+
+    /// @notice Sets the hotkey at a given index as the priority hotkey
+    /// @param hotkeyIndex The index of the hotkey to set as the priority hotkey
+    function setHotKeyAsPriority(uint256 hotkeyIndex) external;
 
     /// @notice Rebalances the stakes of the contract
     /// @param amounts The amounts to rebalance to

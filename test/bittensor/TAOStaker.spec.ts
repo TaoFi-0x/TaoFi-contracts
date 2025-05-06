@@ -17,6 +17,8 @@ describe("TAOStaker", function () {
     "0x1111111111111111111111111111111111111111111111111111111111111111";
   const HOTKEY2 =
     "0x2222222222222222222222222222222222222222222222222222222222222222";
+  const HOTKEY3 =
+    "0x3333333333333333333333333333333333333333333333333333333333333333";
 
   beforeEach(async function () {
     [owner, nonOwner] = await ethers.getSigners();
@@ -148,6 +150,113 @@ describe("TAOStaker", function () {
 
     it("should revert when removing non-existent hotkey", async function () {
       await expect(taoStaker.connect(owner).removeHotKeys([0])).to.be.reverted;
+    });
+
+    it("should properly rebalance stakes across hotkeys", async function () {
+      const contractAddress = await taoStaker.address;
+      const contractPubKey = ethers.utils.hexZeroPad(contractAddress, 32);
+      await taoStaker.connect(owner).setPubKey(contractPubKey);
+
+      // Add initial hotkeys
+      const hotkeys = [HOTKEY1, HOTKEY2, HOTKEY3];
+      await taoStaker.connect(owner).addHotKeys(hotkeys);
+
+      // Send some TAO to the contract
+      const initialAmount = ethers.utils.parseEther("10.0");
+      await owner.sendTransaction({
+        to: taoStaker.address,
+        value: initialAmount,
+      });
+
+      // Initial stake distribution - all on first hotkey
+      const initialTargets = [
+        initialAmount, // HOTKEY1
+        ethers.utils.parseEther("0"), // HOTKEY2
+        ethers.utils.parseEther("0"), // HOTKEY3
+      ];
+      await taoStaker.connect(owner).rebalance(initialTargets);
+
+      // Verify initial stake distribution
+      const initialStake1 = await taoStaker.getHotKeyStakedAmount(HOTKEY1);
+      const initialStake2 = await taoStaker.getHotKeyStakedAmount(HOTKEY2);
+      const initialStake3 = await taoStaker.getHotKeyStakedAmount(HOTKEY3);
+      expect(initialStake1).to.equal(initialAmount);
+      expect(initialStake2).to.equal(0);
+      expect(initialStake3).to.equal(0);
+
+      // Verify contract balance is zero (all staked)
+      const contractBalanceAfterInitialStake = await ethers.provider.getBalance(
+        taoStaker.address
+      );
+      expect(contractBalanceAfterInitialStake).to.equal(0);
+
+      // Remove first hotkey
+      await taoStaker.connect(owner).removeHotKeys([0]);
+
+      // Verify HOTKEY1 is properly unstaked
+      const stakeAfterRemoval = await taoStaker.getHotKeyStakedAmount(HOTKEY1);
+      expect(stakeAfterRemoval).to.equal(0);
+
+      // Verify TAO is returned to the contract
+      const contractBalanceAfterRemoval = await ethers.provider.getBalance(
+        taoStaker.address
+      );
+      expect(contractBalanceAfterRemoval).to.equal(initialAmount);
+
+      // Verify HOTKEY1 is no longer in the hotkeys array
+      const storedHotkeys = await taoStaker.getHotkeys();
+      expect(storedHotkeys.length).to.equal(2);
+      expect(storedHotkeys[0]).to.equal(HOTKEY3);
+      expect(storedHotkeys[1]).to.equal(HOTKEY2);
+      expect(await taoStaker.isHotKeyAdded(HOTKEY1)).to.be.false;
+
+      // Send more TAO to the contract
+      const additionalAmount = ethers.utils.parseEther("5.0");
+      await owner.sendTransaction({
+        to: taoStaker.address,
+        value: additionalAmount,
+      });
+
+      // Distribute new TAO across remaining hotkeys
+      const additionalTargets = [
+        ethers.utils.parseEther("8.0"), // HOTKEY2
+        ethers.utils.parseEther("7.0"), // HOTKEY3
+      ];
+      await taoStaker.connect(owner).rebalance(additionalTargets);
+
+      // Verify stake distribution before final rebalance
+      const beforeStake2 = await taoStaker.getHotKeyStakedAmount(HOTKEY2);
+      const beforeStake3 = await taoStaker.getHotKeyStakedAmount(HOTKEY3);
+      expect(beforeStake2).to.equal(ethers.utils.parseEther("7.0"));
+      expect(beforeStake3).to.equal(ethers.utils.parseEther("8.0"));
+
+      // Verify contract balance is zero (all staked)
+      const contractBalanceAfterAdditionalStake =
+        await ethers.provider.getBalance(taoStaker.address);
+      expect(contractBalanceAfterAdditionalStake).to.equal(0);
+
+      // Final rebalance with different target amounts
+      const finalTargets = [
+        ethers.utils.parseEther("4.0"), // HOTKEY2
+        ethers.utils.parseEther("1.0"), // HOTKEY3
+      ];
+      await taoStaker.connect(owner).rebalance(finalTargets);
+
+      // Verify final stake distribution
+      const finalStake2 = await taoStaker.getHotKeyStakedAmount(HOTKEY2);
+      const finalStake3 = await taoStaker.getHotKeyStakedAmount(HOTKEY3);
+      expect(finalStake2).to.equal(finalTargets[1]);
+      expect(finalStake3).to.equal(finalTargets[0]);
+
+      // Verify contract balance is zero (all staked)
+      const finalContractBalance = await ethers.provider.getBalance(
+        taoStaker.address
+      );
+      expect(finalContractBalance).to.equal(ethers.utils.parseEther("10"));
+
+      // Verify total staked amount remains the same
+      const totalStaked = await taoStaker.totalStakedTAO();
+      expect(totalStaked).to.equal(initialAmount.add(additionalAmount));
     });
   });
 });

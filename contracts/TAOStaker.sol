@@ -98,6 +98,17 @@ contract TAOStaker is OwnableUpgradeable, ITAOStaker {
     }
 
     /// @inheritdoc ITAOStaker
+    function setHotKeyAsPriority(uint256 hotkeyIndex) public onlyOwner {
+        bytes32 newPriorityHotKey = getHotKey(hotkeyIndex);
+
+        TAOSTakerStorage storage $ = _getTAOStakerStorage();
+        $.hotkeys[hotkeyIndex] = $.hotkeys[0];
+        $.hotkeys[0] = newPriorityHotKey;
+
+        emit HotKeyPrioritySet(hotkeyIndex);
+    }
+
+    /// @inheritdoc ITAOStaker
     function rebalance(uint256[] calldata amounts) public onlyOwner {
         // increase/decrease the stakes according to the hotkeys and amounts
         // make it so that the final stake in the hotkeys is the amount specified
@@ -105,7 +116,6 @@ contract TAOStaker is OwnableUpgradeable, ITAOStaker {
 
         for (uint256 i = 0; i < hotkeys.length; i++) {
             uint256 currentStake = getHotKeyStakedAmount(hotkeys[i]);
-
             if (currentStake < amounts[i]) {
                 _addStake(hotkeys[i], amounts[i] - currentStake);
             } else if (currentStake > amounts[i]) {
