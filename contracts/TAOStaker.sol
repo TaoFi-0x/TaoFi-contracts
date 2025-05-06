@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: ISC
 pragma solidity ^0.8.21;
 
+import "hardhat/console.sol";
+
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IStaking} from "./interfaces/IStaking.sol";
@@ -132,17 +134,30 @@ contract TAOStaker is OwnableUpgradeable, ITAOStaker {
     function removeHotKeys(uint256[] calldata hotKeysIndexes) public onlyOwner {
         for (uint256 i = 0; i < hotKeysIndexes.length; i++) {
             uint256 index = hotKeysIndexes[i];
-            bytes32 hotkey = getHotKey(index);
 
+            // If hotkey is not added, this function call will revert so there is not need for special case handling
+            // but we can check just in case
+            bytes32 hotkey = getHotKey(index);
             if (!isHotKeyAdded(hotkey)) {
                 revert HotKeyNotAdded(hotkey);
             }
 
             _removeStake(hotkey, getHotKeyStakedAmount(hotkey));
 
-            // TODO: Check if this is the correct way to delete the hotkey
-            _getTAOStakerStorage().isHotKeyAdded[hotkey] = false;
-            delete _getTAOStakerStorage().hotkeys[index];
+            // Remove the hotkey from the array
+            TAOSTakerStorage storage $ = _getTAOStakerStorage();
+            uint256 lastIndex = $.hotkeys.length - 1;
+
+            // If the element to remove is not the last one, move the last element to the position being removed
+            if (index < lastIndex) {
+                $.hotkeys[index] = $.hotkeys[lastIndex];
+            }
+
+            // Remove the last element
+            $.hotkeys.pop();
+
+            // Update the mapping
+            $.isHotKeyAdded[hotkey] = false;
 
             emit HotkeyRemoved(hotkey);
         }

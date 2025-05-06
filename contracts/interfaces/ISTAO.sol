@@ -12,6 +12,10 @@ interface ISTAO {
     /// @notice Event emitted when the network fee is set
     event NetworkFeeSet(uint256 networkFee);
 
+    /// @notice Returns the network fee
+    /// @return networkFee The network fee
+    function networkFee() external view returns (uint256 networkFee);
+
     /// @notice Returns corresponding shares for the given amount of TAO, rounded down
     /// @param assets The amount of TAO to convert to shares
     /// @param totalStakeToDecrease The total stake to decrease
